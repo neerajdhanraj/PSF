@@ -7,6 +7,7 @@ Author: Neeraj Bokde
 Maintainer: Neeraj Bokde <neerajdhanraj@gmail.com>
 Description: It takes time series data as input and forecasts the
     future value with the help of Algorith PSF
+URL: http://www.neerajbokde.com/
 License: GPL (>= 2)
 Imports: cluster
 LazyData: TRUE
