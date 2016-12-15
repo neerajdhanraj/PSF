@@ -1,0 +1,141 @@
+---
+title: "Introduction to Pattern Sequence based Forecasting (PSF) algorithm"
+author: "Neeraj Bokde, Gualberto Asencio-Cortes and Francisco Martinez-Alvarez"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+## Introduction
+
+The Algorithm Pattern Sequence based Forecasting (PSF) was first proposed by Martinez Alvarez, et al., 2008 and then modified and suggested improvement by Martinez Alvarez, et al., 2011. The technical detailes are mentioned in referenced articles. PSF algorithm consists of various statistical operations like:
+
+- Data Normalization/ Denormalization
+- Calculation of optimum Window size (W)
+- Calculation of optimum cluster size (k)
+- Pattern Sequence based Forecasting
+- RMSE/MAE Calculation, etc..
+
+
+## Example
+
+This section discusses about the examples to introduce the use of the PSF package and to compare it
+with auto.arima() and ets() functions, which are well accepted functions in the R community working
+over time series forecasting techniques. The data used in this example are ’nottem’ and ’sunspots’
+which are the standard time series dataset available in R. The ’nottem’ dataset is the average air
+temperatures at Nottingham Castle in degrees Fahrenheit, collected for 20 years, on monthly basis.
+
+Similarly, ’sunspots’ dataset is mean relative sunspot numbers from 1749 to 1983, measured on monthly
+basis. First of all, the psf() function from PSF package is used to forecast the future values. For both
+datasets, all the recorded values except for the final year are considered as training data, and the
+last year is used for testing purposes. The predicted values for final year with psf() function for both
+datasets are now discussed.
+
+#### Install library
+
+Download the Package and install with instruction:
+
+```{r}
+library(PSF)
+```
+
+#### Prediction results for ’nottem’ dataset with psf() function.
+
+```{r}
+a <- psf(data = nottem, n.ahead = 12)
+a
+```
+
+#### Prediction results for ’sunspots’ dataset with psf() function.
+
+```{r}
+b <- psf(data = sunspots, n.ahead = 48)
+b
+```
+
+To represent the prediction performance in plot format, the psf_plot() function is used as shown in
+the following code.
+
+#### Plot for 'nottem' dataset
+
+```{r, fig.width = 7, fig.height = 4}
+psf_plot(data = nottem, predictions = a$predictions)
+```
+
+#### Plot for 'sunspots' dataset
+
+```{r, fig.width = 7, fig.height = 4}
+psf_plot(data = sunspots, predictions = b$predictions)
+```
+
+
+## Comparison of `psf()` with `auto.arima()` and `ets()` functions:
+
+Example below shows the comparisons for `psf()`, `auto.arima()` and `ets()` functions when using the Root
+Mean Square Error (RMSE) parameter as metric, for ’sunspots’ dataset. In order to
+avail more accurate and robust comparison results, error values are calculated for 5 times and the mean value of error values for methods under comparison are also shown. These values clearly state that 'psf()' function is able to outperform the comparative time series prediction
+methods. Additionally, the reader might want to refer to the results published in the original
+work Martinez Alvarez et al. (2011), in which it was shown that PSF outperformed many different
+methods when applied to electricity prices and demand forecasting.
+
+
+```{r}
+library(PSF)
+library(forecast)
+options(warn=-1)
+  
+## Consider data `sunspots` with removal of last years's readings
+# Training Data
+x <- sunspots[1:2772]
+
+# Test Data
+y <- sunspots[2773:2820]
+
+PSF <- NULL
+ARIMA <- NULL
+ETS <- NULL
+
+for(i in 1:5)
+{
+  set.seed(i)
+  
+  # for PSF
+  a <- psf(data = x, n.ahead = 48)$predictions
+  
+  # for ARIMA
+  b <- forecast(auto.arima(x), 48)$mean
+  
+  # for ets
+  c <- as.numeric(forecast(ets(x), 48)$mean)
+  
+  ## For Error Calculations
+  # Error for PSF
+  PSF[i] <- sqrt(mean((y - a)^2))
+  # Error for ARIMA
+  ARIMA[i] <- sqrt(mean((y - b)^2))
+  # Error for ETS
+  ETS[i] <- sqrt(mean((y - c)^2))
+
+}
+
+## Error values for PSF
+  PSF
+  mean(PSF)
+  
+## Error values for ARIMA
+  ARIMA
+  mean(ARIMA)
+  
+## Error values for ETS
+  ETS
+  mean(ETS)
+```
+
+## References
+
+
+Martínez-Álvarez, F., Troncoso, A., Riquelme, J.C. and Ruiz, J.S.A., 2008, December. LBF: A labeled-based forecasting algorithm and its application to electricity price time series. In Data Mining, 2008. ICDM’08. Eighth IEEE International Conference on (pp. 453-461). IEEE.
+
+Martinez Alvarez, F., Troncoso, A., Riquelme, J.C. and Aguilar Ruiz, J.S., 2011. Energy time series forecasting based on pattern sequence similarity. Knowledge and Data Engineering, IEEE Transactions on, 23(8), pp.1230-1243.
